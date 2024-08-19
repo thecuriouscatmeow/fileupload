@@ -1,6 +1,7 @@
 const express = require('express');
-const router = express();
+const app = express();
 const { connectDB } = require('./config/db');
+const userRoutes = require('./routes/user');
 
 
 //middlewares
@@ -10,7 +11,11 @@ app.use(express.urlencoded({ extends: false }));
 
 const PORT = 1338;
 
-app.listen(PORT => {
-    console.log('Server is UP & running on ${PORT}');
+
+app.use('/api/v1/user', userRoutes)
+
+
+app.listen(PORT, () => {
+    console.log(`Server is UP & running on ${PORT}`);
     connectDB();
 });
