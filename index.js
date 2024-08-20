@@ -5,11 +5,11 @@ const userRoutes = require('./routes/user');
 
 
 //middlewares
-app.use(express.json);
+app.use(express.json());
 app.use(express.static('content'));
-app.use(express.urlencoded({ extends: false }));
+app.use(express.urlencoded({ extended: false }));
 
-const PORT = 1338;
+const PORT = 3001;
 
 
 app.use('/api/v1/user', userRoutes)
