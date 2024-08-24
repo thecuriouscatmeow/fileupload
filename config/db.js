@@ -6,11 +6,13 @@ const createDB = new Sequelize('test-db', 'user', 'pass', {
 });
 
 const connectDB = () => {
-    createDB.sync().then( () => {
-        console.log('Connected to db');
+    createDB
+    .sync()
+    .then( (res) => {
+        console.log('Connected to database: success');
     })
     .catch((e) => {
-        console.log('db connection failed', e);
+        console.log('Database connection failed: ', e);
     })
 }
 
