@@ -14,7 +14,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
     storage,
-    limits: { fileSize: 100000 * 100 },
+    limits: { fileSize: 1000000 * 10 },
     fileFilter: (req, file, cb) => {
         const fileTypes = /jpg|png|mp4|gif/;
         const mimeType = fileTypes.test(file.mimetype);
@@ -23,10 +23,9 @@ const upload = multer({
         if(mimeType && extname) {
             return cb(null, true);
         }
-
         cb("Only images supported");
     }
 }).single("content");
 //single means user can upload only one file at a time
 
-module.exports = upload
+module.exports = upload;

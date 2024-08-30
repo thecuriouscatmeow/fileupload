@@ -1,4 +1,5 @@
 const { DataTypes } = require('sequelize');
+
 const { createDB } = require('../config/db');
 
 const User = createDB.define("users", {
@@ -13,8 +14,8 @@ const User = createDB.define("users", {
     password: DataTypes.STRING,
     isSeller: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false
-    }
+        defaultValue: false,
+    },
 });
 
 

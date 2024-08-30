@@ -6,8 +6,12 @@ const { connectDB } = require('./config/db');
 const userRoutes = require('./routes/user');
 const productRoutes = require('./routes/product');
 
+const PORT = 3001;
+
 const app = express();
-connectDB();
+connectDB( ()=> {
+    console.log("DB connected");
+});
 
 //middlewares
 app.use(express.json());
@@ -15,7 +19,6 @@ app.use(logger("dev"));
 app.use(express.static('content'));
 app.use(express.urlencoded({ extended: false }));
 
-const PORT = 3001;
 
 //Routes
 app.use('/api/v1/user', userRoutes);
@@ -27,5 +30,5 @@ app.get('/', async (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Server is up & running on port:${PORT}`);
-    connectDB();
+    
 });

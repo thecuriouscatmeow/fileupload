@@ -1,6 +1,7 @@
 const express = require ('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { JsonWebTokenError } = require('jsonwebtoken');
 
 const SECRET = "Abra Ca Dabra";
 
@@ -12,7 +13,6 @@ const{
     validateEmail,
     validatePassword
 } = require('../utils/validators');
-const { JsonWebTokenError } = require('jsonwebtoken');
 
 
 router.post("/signup", async (req, res) => {
@@ -21,7 +21,7 @@ router.post("/signup", async (req, res) => {
         const { name, email, password, isSeller } = req.body;
 
         // Check if the user already exists
-        const existingUser = await User.findOne({where: {email}});
+        const existingUser = await User.findOne({where: { email }});
         if(existingUser) {
             return res.status(403).json({ err: "User already exists" });
         }
@@ -42,8 +42,8 @@ router.post("/signup", async (req, res) => {
         const user = {
             email,
             name,
-            isSeller,
-            password: hashedPassword
+            password: hashedPassword,
+            isSeller: isSeller || false,
         };
 
         const createdUser = await User.create(user);
@@ -96,6 +96,7 @@ router.post("/signin", async (req, res) => {
         })
 
         res.cookie('t', bearerToken, { expire: new Date() + 9999 });
+        console.log('Logged in Successfully');
 
         return res.status(200).json({
             bearerToken

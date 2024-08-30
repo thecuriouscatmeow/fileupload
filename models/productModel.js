@@ -1,4 +1,5 @@
 const { DataTypes } = require('sequelize');
+
 const { createDB } = require('../config/db');
 
 const Product = createDB.define("product", {
