@@ -1,18 +1,22 @@
 const express = require ('express');
+const { stripeKey } = require('../config/credentials');
 
 const upload = require('../utils/fileUpload');
 const Product = require('../models/productModel');
-const { isAuthenticiated, isSeller } = require('../middlewares/auth');
+const { isAuthenticated, isSeller, isBuyer } = require('../middlewares/auth');
 
 const router = express.Router();
 
 
-router.post("/create", isAuthenticiated, isSeller, (req, res) => {
+router.post("/create", isAuthenticated, isSeller, (req, res) => {
     upload(req, res, async(err) => {
         if(err) {
             console.log('coming in err', err);
             return res.status(500).send({err: err.message});
         }
+
+        console.log("Request Body:", req.body);
+        console.log("Uploaded File:", req.file);
 
         let { name, price } = req.body;
         if( !name || !price || !req.file) {
@@ -37,7 +41,7 @@ router.post("/create", isAuthenticiated, isSeller, (req, res) => {
         const createdProduct = await Product.create(productDetails);
         console.log("Created Product : ", createdProduct);
 
-        return res.status(200).json({
+        return res.status(201).json({
             status: 'ok',
             productDetails
         });
@@ -45,7 +49,7 @@ router.post("/create", isAuthenticiated, isSeller, (req, res) => {
 });
 
 
-router.get("/get/all", isAuthenticiated, async(req, res) => {
+router.get("/get/all", isAuthenticated, async(req, res) => {
     try {
         const products = await Product.findAll();
         return res.status(200).json({Products: products});
@@ -58,5 +62,29 @@ router.get("/get/all", isAuthenticiated, async(req, res) => {
 
 
 
+router.get("/buy/:productId", isAuthenticated, isBuyer , async(req, res) => {
+    try {
+        const product = await Product.findOne({ 
+            where: {id: req.paarams.productId
+        }})?.dataValues;
 
-module.exports = router;
+        if(!product) {return res.status(404).json({ err: "No product found" })};
+
+        const orderDetails = {
+            productId,
+            buyerId: req.user.id,
+        }
+
+
+
+        return res.status(200).json({Products: products});
+
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({err: err.message});
+    }
+});
+
+
+
+module.exports = router; 

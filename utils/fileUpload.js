@@ -6,7 +6,7 @@ const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, "content")
     },
-    fileName: (req, file, cb) => {
+    filename: (req, file, cb) => {
         cb(null, Date.now() + path.extname(file.originalname));
     },
 });
@@ -14,9 +14,9 @@ const storage = multer.diskStorage({
 
 const upload = multer({
     storage,
-    limits: { fileSize: 1000000 * 10 },
+    limits: { fileSize: 1000000 * 10 }, // 10 MB limit
     fileFilter: (req, file, cb) => {
-        const fileTypes = /jpg|png|mp4|gif/;
+        const fileTypes = /jpg|png|mp4|gif/;    // Supported file types
         const mimeType = fileTypes.test(file.mimetype);
         const extname = fileTypes.test(path.extname(file.originalname));
 

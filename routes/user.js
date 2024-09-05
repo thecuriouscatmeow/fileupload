@@ -91,7 +91,7 @@ router.post("/signin", async (req, res) => {
         }
 
         const payload = { user: { id: existingUser.id }};
-        const bearerToken = await jwt.sign(payload, "SECRET MESSAGE", {
+        const bearerToken = await jwt.sign(payload, SECRET, {
             expiresIn: 360000,
         })
 

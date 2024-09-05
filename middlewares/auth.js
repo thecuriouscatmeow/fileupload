@@ -2,10 +2,10 @@ const jwt = require('jsonwebtoken')
 
 const User = require('../models/userModel');
 
-const SECRET = "Abra ca Dabra";
+const SECRET = "Abra Ca Dabra";
 
 
-const isAuthenticiated = async (req, res, next) => {
+const isAuthenticated = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
 
@@ -31,7 +31,7 @@ const isAuthenticiated = async (req, res, next) => {
             return res.status(404).json({err: "user not found"});
         }
 
-        req.user = user;
+        req.user = user.dataValues;
         next();
     }   catch (e) {
         console.log(e);
@@ -42,7 +42,7 @@ const isAuthenticiated = async (req, res, next) => {
 
 const isSeller = async (req, res, next) => {
 
-    if(req.user.dataValues.isSeller) {
+    if(req.user.isSeller) {
         next();
     } else {
         return res.status(401).json({
@@ -52,5 +52,16 @@ const isSeller = async (req, res, next) => {
 };
 
 
+const isBuyer = async (req, res, next) => {
 
-module.exports = { isAuthenticiated, isSeller };
+    if(!req.user.isSeller) {
+        next();
+    } else {
+        return res.status(401).json({
+            err: "You are not buyer"
+        });
+    }
+};
+
+
+module.exports = { isAuthenticated, isSeller, isBuyer };
