@@ -1,5 +1,6 @@
 const express = require ('express');
 const { stripeKey } = require('../config/credentials');
+const stripe = require('stripe')(stripeKey);
 
 const upload = require('../utils/fileUpload');
 const Product = require('../models/productModel');
@@ -65,8 +66,8 @@ router.get("/get/all", isAuthenticated, async(req, res) => {
 router.get("/buy/:productId", isAuthenticated, isBuyer , async(req, res) => {
     try {
         const product = await Product.findOne({ 
-            where: {id: req.paarams.productId
-        }})?.dataValues;
+            where: { id: req.params.productId }
+        })?.dataValues;
 
         if(!product) {return res.status(404).json({ err: "No product found" })};
 
@@ -76,8 +77,33 @@ router.get("/buy/:productId", isAuthenticated, isBuyer , async(req, res) => {
         }
 
 
+        let paymentMethod = await stripe.paymentMethod.create({
+            type: "card",
+            card: {
+                number: "548743874387",
+                exp_month: 9,
+                exp_year: 2023,
+                cvc: "314",
+            },
+        });
 
-        return res.status(200).json({Products: products});
+        let paymeentIntent = await  stripe.paymeentIntent.create({
+            amount: product.price,
+            currency: "inr",
+            payment_method_types: ["card"],
+            payment_method: paymentMethod.id,
+            confirm: true
+        });
+
+        if(paymentIntent) {
+            const createOrder = await Order.create(orderDetails);
+            return res.status(200).json({ createOrder });
+        } else {
+            return res.status(400).json({
+                err: "payment failed"
+            })
+        };
+
 
     } catch (err) {
         console.log(err);
