@@ -1,12 +1,22 @@
 const express = require ('express');
+const router = express.Router();
+
 const { stripeKey } = require('../config/credentials');
 const stripe = require('stripe')(stripeKey);
 
+const { isAuthenticated, isSeller, isBuyer } = require('../middlewares/auth');
 const upload = require('../utils/fileUpload');
 const Product = require('../models/productModel');
-const { isAuthenticated, isSeller, isBuyer } = require('../middlewares/auth');
+const Order = require('../models/orderModel');
 
-const router = express.Router();
+
+
+
+const { WebhookClient }  = require("discord.js"); 
+
+const webhook = new WebhookClient({
+    url: "https://discord.com/api/webhooks/1283138703119614075/3lUezQhHIS2lhM0G590TcENKFgxmMdMObkSswl1Yo-_nG0NaepcPTyi86su8L5FwduQm"
+});
 
 
 router.post("/create", isAuthenticated, isSeller, (req, res) => {
@@ -63,41 +73,50 @@ router.get("/get/all", isAuthenticated, async(req, res) => {
 
 
 
-router.get("/buy/:productId", isAuthenticated, isBuyer , async(req, res) => {
-    try {
+router.post("/buy/:productId", isAuthenticated, isBuyer , async(req, res) => {
+    try { 
         const product = await Product.findOne({ 
             where: { id: req.params.productId }
-        })?.dataValues;
+        });
 
-        if(!product) {return res.status(404).json({ err: "No product found" })};
+        if(!product) {
+            return res.status(404).json({ err: "No product found" })
+        };
 
         const orderDetails = {
-            productId,
+            productId: product.id,
             buyerId: req.user.id,
         }
 
 
-        let paymentMethod = await stripe.paymentMethod.create({
+        let paymentMethod = await stripe.paymentMethods.create({
             type: "card",
             card: {
-                number: "548743874387",
+                number: "4242424242424242",
                 exp_month: 9,
-                exp_year: 2023,
+                exp_year: 2025,
                 cvc: "314",
             },
         });
 
-        let paymeentIntent = await  stripe.paymeentIntent.create({
-            amount: product.price,
+        let paymentIntent = await  stripe.paymentIntents.create({
+            amount: Math.round(product.price * 100),
             currency: "inr",
-            payment_method_types: ["card"],
+            payment_method_types: ["pm_card_visa"],
             payment_method: paymentMethod.id,
             confirm: true
         });
 
         if(paymentIntent) {
             const createOrder = await Order.create(orderDetails);
-            return res.status(200).json({ createOrder });
+
+            webhook.send({
+                content: `I am sending it from day10 for order id: ${createOrder.id}`,
+                username: "order-keeper",
+                avatarURL: "https://as1.ftcdn.net/v2/jpg/08/34/31/24/1000_F_834312429_fF8SuKsNCU6ZHmiy1j7SLagQfMZHsNjZ.webp",
+            }) 
+
+            return res.status(200).json({ status: "Product bought successfully", order: createOrder });
         } else {
             return res.status(400).json({
                 err: "payment failed"
