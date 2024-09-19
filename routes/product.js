@@ -73,10 +73,14 @@ router.get("/get/all", isAuthenticated, async(req, res) => {
 
 
 
-router.post("/buy/:productId", isAuthenticated, isBuyer , async(req, res) => {
+router.post("/buy", isAuthenticated, isBuyer , async(req, res) => {
     try { 
+        const { productId, paymentMethodId } = req.body; // Expecting test token in paymentMethodId
+        
+        
         const product = await Product.findOne({ 
-            where: { id: req.params.productId }
+            // where: { id: req.params.productId }
+            where: { id: productId }
         });
 
         if(!product) {
@@ -84,34 +88,37 @@ router.post("/buy/:productId", isAuthenticated, isBuyer , async(req, res) => {
         };
 
         const orderDetails = {
-            productId: product.id,
+            productId,
             buyerId: req.user.id,
         }
 
+// HARD CODED CARD DETAILS NOT ALLOWED
+        // let paymentMethod = await stripe.paymentMethods.create({
+        //     type: "card",
+        //     card: {
+        //         number: "4242424242424242",
+        //         exp_month: 9,
+        //         exp_year: 2025,
+        //         cvc: "314",
+        //     },
+        // });
 
-        let paymentMethod = await stripe.paymentMethods.create({
-            type: "card",
-            card: {
-                number: "4242424242424242",
-                exp_month: 9,
-                exp_year: 2025,
-                cvc: "314",
-            },
-        });
-
-        let paymentIntent = await  stripe.paymentIntents.create({
+        const paymentIntent = await  stripe.paymentIntents.create({
             amount: Math.round(product.price * 100),
             currency: "inr",
-            payment_method_types: ["pm_card_visa"],
-            payment_method: paymentMethod.id,
-            confirm: true
+            payment_method: 'pm_card_visa',
+            confirm: true,
+            automatic_payment_methods: {
+                enabled: true,
+                allow_redirects: 'never',
+            }
         });
 
-        if(paymentIntent) {
+        if(paymentIntent. status === 'succeeded') {
             const createOrder = await Order.create(orderDetails);
 
             webhook.send({
-                content: `I am sending it from day10 for order id: ${createOrder.id}`,
+                content: `New order Update. ID: ${createOrder.id}`,
                 username: "order-keeper",
                 avatarURL: "https://as1.ftcdn.net/v2/jpg/08/34/31/24/1000_F_834312429_fF8SuKsNCU6ZHmiy1j7SLagQfMZHsNjZ.webp",
             }) 
