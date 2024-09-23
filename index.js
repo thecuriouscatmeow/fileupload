@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require('express');
 const logger = require('morgan');
 
@@ -6,7 +8,7 @@ const { connectDB } = require('./config/db');
 const userRoutes = require('./routes/user');
 const productRoutes = require('./routes/product');
 
-const PORT = 3001;
+const PORT = process.env.PORT;
 
 const app = express();
 connectDB( ()=> {
